@@ -1,0 +1,21 @@
+{
+  "name": "marie-maison-fullstack",
+  "version": "1.0.0",
+  "description": "Marie Maison — Full-stack luxury jewelry website (Express + HTML/CSS/JS)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "mongoose": "^9.5.0"
+  },
+  "author": "Marie Maison",
+  "license": "MIT"
+}

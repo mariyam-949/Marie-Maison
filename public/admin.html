@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Marie Maison</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <section>
+    <div class="container">
+      <div class="section-head" style="margin-bottom:32px;">
+        <p class="eyebrow" style="color:var(--gold);letter-spacing:4px;font-size:.7rem;text-transform:uppercase;margin-bottom:12px;">Atelier</p>
+        <h1>Product Administration</h1>
+      </div>
+
+      <!-- Add Product Form -->
+      <div style="background:var(--surface);border:1px solid var(--line);padding:32px;border-radius:4px;margin-bottom:60px;">
+        <h3 style="margin-bottom:20px;font-family:var(--serif);" id="formTitle">Add New Product</h3>
+        <form id="productForm" class="form-grid cols-2">
+          <input type="hidden" id="productId" />
+          <div class="field"><label>Name</label><input type="text" id="name" required /></div>
+          <div class="field"><label>SKU</label><input type="text" id="sku" placeholder="MM-X-001"/></div>
+          <div class="field">
+            <label>Category</label>
+            <select id="category" required>
+              <option value="rings">Rings</option>
+              <option value="necklaces">Necklaces</option>
+              <option value="earrings">Earrings</option>
+              <option value="bracelets">Bracelets</option>
+              <option value="anklets">Anklets</option>
+            </select>
+          </div>
+          <div class="field"><label>Price (€)</label><input type="number" id="price" required min="0" step="1"/></div>
+          <div class="field" style="grid-column:span 2;"><label>Image URL</label><input type="text" id="image" placeholder="/images/ring-01.jpg"/></div>
+          <div class="field" style="grid-column:span 2;"><label>Material</label><input type="text" id="material" placeholder="18k Yellow Gold"/></div>
+          <div class="field" style="grid-column:span 2;"><label>Description</label><textarea id="description"></textarea></div>
+          <div style="grid-column:span 2;display:flex;gap:10px;">
+            <button type="submit" class="btn btn-gold" id="submitBtn">Add Product</button>
+            <button type="button" class="btn btn-outline" onclick="resetForm()">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Catalog Table -->
+      <h3 style="margin-bottom:20px;font-family:var(--serif);">Catalog (<span id="count">0</span>)</h3>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>SKU</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    async function loadProducts() {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      document.getElementById('count').textContent = products.length;
+      document.getElementById('tbody').innerHTML = products.map(p => `
+        <tr>
+          <td><img src="${p.image}" alt=""/></td>
+          <td>${p.name}</td>
+          <td style="text-transform:capitalize;">${p.category}</td>
+          <td>${formatPrice(p.price)}</td>
+          <td style="color:var(--muted);font-size:.8rem;">${p.sku}</td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-sm btn-outline" onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function resetForm() {
+      document.getElementById('productForm').reset();
+      document.getElementById('productId').value = '';
+      document.getElementById('formTitle').textContent = 'Add New Product';
+      document.getElementById('submitBtn').textContent = 'Add Product';
+    }
+
+    function editProduct(p) {
+      document.getElementById('productId').value = p.id;
+      document.getElementById('name').value = p.name;
+      document.getElementById('sku').value = p.sku;
+      document.getElementById('category').value = p.category;
+      document.getElementById('price').value = p.price;
+      document.getElementById('image').value = p.image;
+      document.getElementById('material').value = p.material;
+      document.getElementById('description').value = p.description;
+      document.getElementById('formTitle').textContent = 'Edit Product';
+      document.getElementById('submitBtn').textContent = 'Update Product';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete this product?')) return;
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      if (res.ok) { toast('Deleted'); loadProducts(); }
+      else toast('Could not delete');
+    }
+
+    document.getElementById('productForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('productId').value;
+      const body = {
+        name: document.getElementById('name').value,
+        sku: document.getElementById('sku').value,
+        category: document.getElementById('category').value,
+        price: document.getElementById('price').value,
+        image: document.getElementById('image').value || '/images/ring-01.jpg',
+        material: document.getElementById('material').value,
+        description: document.getElementById('description').value,
+      };
+
+      const url = id ? `/api/products/${id}` : '/api/products';
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        toast(id ? 'Product updated' : 'Product added');
+        resetForm();
+        loadProducts();
+      } else {
+        toast('Error saving product');
+      }
+    });
+
+    loadProducts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shop — Marie Maison</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <section style="padding-top:60px;padding-bottom:30px;text-align:center;">
+    <div class="container">
+      <p class="eyebrow" style="color:var(--gold);letter-spacing:4px;font-size:.7rem;text-transform:uppercase;margin-bottom:12px;">The Collection</p>
+      <h1 id="shopTitle">All Pieces</h1>
+    </div>
+  </section>
+
+  <section style="padding-top:20px;">
+    <div class="container">
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-cat="all">All</button>
+        <button class="filter-btn" data-cat="rings">Rings</button>
+        <button class="filter-btn" data-cat="necklaces">Necklaces</button>
+        <button class="filter-btn" data-cat="earrings">Earrings</button>
+        <button class="filter-btn" data-cat="bracelets">Bracelets</button>
+        <button class="filter-btn" data-cat="anklets">Anklets</button>
+      </div>
+
+      <div class="product-grid" id="productGrid">
+        <div class="loading">Loading collection…</div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    let allProducts = [];
+
+    async function loadProducts(cat = 'all') {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '<div class="loading">Loading…</div>';
+      const url = cat === 'all' ? '/api/products' : `/api/products?category=${cat}`;
+      const res = await fetch(url);
+      const products = await res.json();
+      allProducts = products;
+      if (!products.length) {
+        grid.innerHTML = '<div class="empty-state"><h3>No pieces found.</h3></div>';
+        return;
+      }
+      grid.innerHTML = products.map(p => `
+        <article class="product-card">
+          <a href="/product.html?id=${p.id}" class="img-wrap"><img src="${p.image}" alt="${p.name}"/></a>
+          <div class="info">
+            <span class="cat">${p.category}</span>
+            <a href="/product.html?id=${p.id}" class="name">${p.name}</a>
+            <span class="price">${formatPrice(p.price)}</span>
+            <div class="actions">
+              <button class="btn btn-sm" onclick="addToCart(${p.id})">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Filter clicks
+    document.getElementById('filters').addEventListener('click', e => {
+      if (!e.target.classList.contains('filter-btn')) return;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      const cat = e.target.dataset.cat;
+      document.getElementById('shopTitle').textContent = cat === 'all' ? 'All Pieces' : cat.charAt(0).toUpperCase() + cat.slice(1);
+      loadProducts(cat);
+    });
+
+    // Initial load (respect ?cat= query)
+    const urlCat = new URLSearchParams(location.search).get('cat') || 'all';
+    const initBtn = document.querySelector(`.filter-btn[data-cat="${urlCat}"]`);
+    if (initBtn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      initBtn.classList.add('active');
+      document.getElementById('shopTitle').textContent = urlCat === 'all' ? 'All Pieces' : urlCat.charAt(0).toUpperCase() + urlCat.slice(1);
+    }
+    loadProducts(urlCat);
+  </script>
+</body>
+</html>

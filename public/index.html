@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marie Maison — Maison de Joaillerie</title>
+  <meta name="description" content="Marie Maison — luxury jewelry crafted in Paris since 1948. Rings, necklaces, earrings, bracelets and anklets." />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Maison de Joaillerie · Est. 1948</p>
+      <h1>Quiet Luxury,<br/>Crafted by Hand</h1>
+      <p>An intimate collection of fine jewelry — designed in Paris, made for a lifetime.</p>
+      <a href="/shop.html" class="btn">Discover the Collection</a>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section>
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Explore</p>
+        <h2>Our Collections</h2>
+      </div>
+      <div class="categories" id="categoriesGrid">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured -->
+  <section style="background:var(--cream);">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Featured Edit</p>
+        <h2>The Essentials</h2>
+      </div>
+      <div class="product-grid" id="featuredGrid">
+        <div class="loading">Loading…</div>
+      </div>
+      <div style="text-align:center;margin-top:40px;">
+        <a href="/shop.html" class="btn btn-outline">View All Pieces</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Heritage -->
+  <section>
+    <div class="container" style="max-width:760px;text-align:center;">
+      <p class="eyebrow" style="color:var(--gold);letter-spacing:4px;font-size:.7rem;text-transform:uppercase;margin-bottom:16px;">Our Heritage</p>
+      <h2 style="margin-bottom:24px;">Three generations of craft.</h2>
+      <p style="color:var(--ink-soft);font-size:1.1rem;line-height:1.8;">From a small atelier on rue de la Paix to a global maison, Marie Maison remains devoted to the same principles: noble materials, patient craft, and the quiet confidence of pieces meant to be worn forever.</p>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+  // Load categories dynamically from DB
+  fetch('/api/categories')
+    .then(r => r.json())
+    .then(categories => {
+      const grid = document.getElementById('categoriesGrid');
+      grid.innerHTML = categories.map(cat => `
+        <a href="${cat.href}" class="category-card">
+          <img src="${cat.image}" alt="${cat.alt}" />
+          <span class="label">${cat.label}</span>
+        </a>
+      `).join('');
+    })
+    .catch(() => {
+      document.getElementById('categoriesGrid').innerHTML = 
+        '<p>Failed to load categories.</p>';
+    });
+</script>
+  <script>
+    // Load 4 featured products
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(products => {
+        const featured = [products[0], products[8], products[16], products[24]].filter(Boolean);
+        const grid = document.getElementById('featuredGrid');
+        grid.innerHTML = featured.map(p => `
+          <article class="product-card">
+            <a href="/product.html?id=${p.id}" class="img-wrap"><img src="${p.image}" alt="${p.name}"/></a>
+            <div class="info">
+              <span class="cat">${p.category}</span>
+              <a href="/product.html?id=${p.id}" class="name">${p.name}</a>
+              <span class="price">${formatPrice(p.price)}</span>
+              <div class="actions">
+                <button class="btn btn-sm" onclick="addToCart(${p.id})">Add to Cart</button>
+              </div>
+            </div>
+          </article>
+        `).join('');
+      });
+  </script>
+</body>
+</html>

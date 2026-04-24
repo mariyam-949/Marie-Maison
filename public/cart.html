@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart — Marie Maison</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <section>
+    <div class="container">
+      <div class="section-head" style="margin-bottom:32px;">
+        <p class="eyebrow" style="color:var(--gold);letter-spacing:4px;font-size:.7rem;text-transform:uppercase;margin-bottom:12px;">Your Selection</p>
+        <h1>Shopping Bag</h1>
+      </div>
+      <div id="cartView"><div class="loading">Loading cart…</div></div>
+    </div>
+  </section>
+
+  <div id="footer"></div>
+  <script src="/js/app.js"></script>
+  <script>
+    async function loadCart() {
+      const view = document.getElementById('cartView');
+      const res = await fetch('/api/cart');
+      const data = await res.json();
+
+      if (!data.items.length) {
+        view.innerHTML = `
+          <div class="empty-state">
+            <h3>Your bag is empty.</h3>
+            <p>Discover our collection and find something exquisite.</p>
+            <a href="/shop.html" class="btn" style="margin-top:24px;">Shop the Collection</a>
+          </div>`;
+        return;
+      }
+
+      view.innerHTML = `
+        <div class="cart-wrapper">
+          <div>
+            ${data.items.map(i => i.product ? `
+              <div class="cart-item">
+                <img src="${i.product.image}" alt="${i.product.name}"/>
+                <div>
+                  <div class="name">${i.product.name}</div>
+                  <div class="meta">${i.product.category} · Qty ${i.quantity}</div>
+                  <div class="price">${formatPrice(i.subtotal)}</div>
+                </div>
+                <button class="remove" onclick="removeItem(${i.productId})">Remove</button>
+              </div>` : '').join('')}
+          </div>
+          <aside class="cart-summary">
+            <h3>Summary</h3>
+            <div class="row"><span>Subtotal</span><span>${formatPrice(data.total)}</span></div>
+            <div class="row"><span>Shipping</span><span>Complimentary</span></div>
+            <div class="row total"><span>Total</span><span>${formatPrice(data.total)}</span></div>
+            <button class="btn btn-gold btn-block" style="margin-top:20px;" onclick="checkout()">Checkout</button>
+            <button class="btn btn-outline btn-block" style="margin-top:8px;" onclick="clearCart()">Empty Bag</button>
+          </aside>
+        </div>`;
+    }
+
+    async function removeItem(id) {
+      await fetch(`/api/cart/${id}`, { method: 'DELETE' });
+      toast('Removed');
+      refreshCartCount();
+      loadCart();
+    }
+
+    async function clearCart() {
+      await fetch('/api/cart', { method: 'DELETE' });
+      toast('Bag cleared');
+      refreshCartCount();
+      loadCart();
+    }
+
+    async function checkout() {
+      await fetch('/api/cart', { method: 'DELETE' });
+      toast('Thank you — order placed!');
+      refreshCartCount();
+      setTimeout(() => location.href = '/', 1200);
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>
