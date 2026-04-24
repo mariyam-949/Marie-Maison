@@ -12,6 +12,7 @@ const path = require('path');
 const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/cart');
 const categoriesRouter = require('./routes/categories');
+const contactRouter = require('./routes/contact');
 
 const app = express();
 connectDB();
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));  // serve static fronte
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/contact', contactRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
