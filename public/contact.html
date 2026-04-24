@@ -55,7 +55,7 @@
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (res.message) {
         toast('Thank you — message received.');
         e.target.reset();
       } else {
